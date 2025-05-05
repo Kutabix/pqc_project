@@ -1,0 +1,41 @@
+[
+  {
+    "variant": "Kyber512",
+    "time_avg": {
+      "keygen": 0.03938288027711678,
+      "encap": 0.0373381999816047,
+      "decap": 0.040846969714039005
+    },
+    "size_avg": {
+      "secret_key": 1632.0,
+      "public_key": 800.0,
+      "ciphertext": 768.0
+    }
+  },
+  {
+    "variant": "Kyber768",
+    "time_avg": {
+      "keygen": 0.05487845999596175,
+      "encap": 0.058005750470329076,
+      "decap": 0.06286279021878727
+    },
+    "size_avg": {
+      "secret_key": 2400.0,
+      "public_key": 1184.0,
+      "ciphertext": 1088.0
+    }
+  },
+  {
+    "variant": "Kyber1024",
+    "time_avg": {
+      "keygen": 0.07734702950983774,
+      "encap": 0.09129965961619746,
+      "decap": 0.09214115008944646
+    },
+    "size_avg": {
+      "secret_key": 3168.0,
+      "public_key": 1568.0,
+      "ciphertext": 1568.0
+    }
+  }
+]
