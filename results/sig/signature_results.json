@@ -1,0 +1,26 @@
+{
+  "message_size": 10,
+  "iterations": 10,
+  "results": [
+    {
+      "algorithm": "Falcon-512",
+      "keygen_time_ms": 14.26553726196289,
+      "avg_sign_time_ms": 3.336334228515625,
+      "avg_verify_time_ms": 0.047326087951660156,
+      "public_key_size": 897,
+      "private_key_size": 1281,
+      "signature_size": 656,
+      "message_size": 10
+    },
+    {
+      "algorithm": "Falcon-1024",
+      "keygen_time_ms": 60.836076736450195,
+      "avg_sign_time_ms": 7.696676254272461,
+      "avg_verify_time_ms": 0.07808208465576172,
+      "public_key_size": 1793,
+      "private_key_size": 2305,
+      "signature_size": 1269,
+      "message_size": 10
+    }
+  ]
+}

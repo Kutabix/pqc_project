@@ -2,16 +2,13 @@ import json
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
-import numpy as np
-from matplotlib import pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 from algorithms.kem.kyber import KyberBenchmark
 from algorithms.kem.bike import BikeBenchmark
-from benchmarks.sig_bench import run_complete_benchmark, PDFSigner, PDF_FILE, ALGORITHMS
-from visualization import generate_advanced_plots, generate_keygen_plot, plot_key_sizes, \
-    plot_total_time_comparison, plot_operation_times_bike, plot_operation_times_kyber
-import pandas as pd
+from algorithms.signature.pdfSigner import SignatureBenchmark
+from visualization import plot_key_sizes, \
+    plot_total_time_comparison, plot_operation_times_bike, plot_operation_times_kyber, plot_key_sizes_signature, \
+    plot_keygen_times, plot_sign_times, plot_verify_times, plot_total_times
 import os
 from pathlib import Path
 
@@ -31,47 +28,45 @@ class MainApp:
     def open_sig_window(self):
         SigWindow(self.root)
 
-class ScrollableFrame(tk.Frame):
-    def __init__(self, container, *args, **kwargs):
-        super().__init__(container, *args, **kwargs)
-        canvas = tk.Canvas(self, height=700)
-        scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = tk.Frame(canvas)
-
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
-            )
-        )
-
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-
 class KemWindow:
     def __init__(self, master):
+        self.KEM_VARIANTS = [
+            "Kyber512",
+            "Kyber768",
+            "Kyber1024",
+            "BIKE-L1",
+            "BIKE-L3",
+            "BIKE-L5"
+        ]
+
         self.window = tk.Toplevel(master)
         self.window.title("KEM Benchmark")
-        self.window.geometry("500x400")
+        self.window.geometry("600x700")
+        self.window.resizable(False, False)
 
         tk.Label(self.window, text="Liczba iteracji:").pack(pady=10)
         self.iter_entry = tk.Entry(self.window)
         self.iter_entry.insert(0, "10")
         self.iter_entry.pack(pady=5)
 
-        self.run_button = tk.Button(self.window, text="Uruchom benchmark (512, 768, 1024)", command=self.run_benchmarks)
+        # Checkboxy do wyboru algorytmów
+        self.check_vars = {}
+        frame = tk.Frame(self.window)
+        frame.pack(pady=5)
+        for variant in self.KEM_VARIANTS:
+            var = tk.IntVar(value=1)
+            cb = tk.Checkbutton(frame, text=variant, variable=var)
+            cb.pack(side=tk.LEFT, padx=5)
+            self.check_vars[variant] = var
+
+        self.run_button = tk.Button(self.window, text="Uruchom benchmark Kyber, BIKE", command=self.run_benchmarks)
         self.run_button.pack(pady=10)
 
-        self.output = tk.Text(self.window, height=10, width=50)
+        self.output = tk.Text(self.window, height=20, width=80)
         self.output.pack(pady=10)
         self.output.config(state=tk.DISABLED)
 
-
-        tk.Button(self.window, text="Pokaż wszystkie wykresy", command=self.show_all_plots).pack(pady=20)
+        tk.Button(self.window, text="Pokaż wykresy", command=self.show_all_plots).pack(pady=10)
 
         self.table_button = tk.Button(self.window, text="Pokaż tabelę wyników", command=self.show_results_table)
         self.table_button.pack(pady=10)
@@ -90,32 +85,47 @@ class KemWindow:
 
     def run_benchmarks(self):
         self.clear_output()
+
         try:
             iterations = int(self.iter_entry.get())
-        except Exception:
+        except ValueError:
             messagebox.showerror("Błąd", "Niepoprawna liczba iteracji")
             return
 
-        kem_variants = [
-            ("Kyber512", KyberBenchmark("512")),
-            ("Kyber768", KyberBenchmark("768")),
-            ("Kyber1024", KyberBenchmark("1024")),
-            ("BIKE-L1", BikeBenchmark("L1")),
-            ("BIKE-L3", BikeBenchmark("L3")),
-            ("BIKE-L5", BikeBenchmark("L5"))
-        ]
+        selected_variants = [variant for variant, var in self.check_vars.items() if var.get() == 1]
+
+        if not selected_variants:
+            messagebox.showerror("Błąd", "Wybierz przynajmniej jeden algorytm!")
+            return
+
+        kem_variants = {
+            "Kyber512": KyberBenchmark("512"),
+            "Kyber768": KyberBenchmark("768"),
+            "Kyber1024": KyberBenchmark("1024"),
+            "BIKE-L1": BikeBenchmark("L1"),
+            "BIKE-L3": BikeBenchmark("L3"),
+            "BIKE-L5": BikeBenchmark("L5")
+        }
 
         all_results = []
         self.append_output("Start benchmarku KEM...\n")
 
-        for name, benchmark in kem_variants:
+        for name in selected_variants:
+            benchmark = kem_variants[name]
             self.append_output(f"Uruchamiam {name}...\n")
             result = benchmark.run_benchmark(iterations=iterations)
             all_results.append(result)
-            self.append_output(f"{name} ukończony.\n")
+
+            self.append_output(f"Algorytm: {result['variant']}\n")
+            self.append_output(f" - Czas generowania klucza: {result['time_avg']['keygen']:.2f} ms\n")
+            self.append_output(f" - Średni czas enkapsulacji: {result['time_avg']['encap']:.2f} ms\n")
+            self.append_output(f" - Średni czas dekapsulacji: {result['time_avg']['decap']:.2f} ms\n")
+            self.append_output(f" - Rozmiar klucza publicznego: {result['size_avg']['public_key']} bajtów\n")
+            self.append_output(f" - Rozmiar klucza prywatnego: {result['size_avg']['secret_key']} bajtów\n")
+            self.append_output(f" - Rozmiar szyfrogramu: {result['size_avg']['ciphertext']} bajtów\n")
+            self.append_output(f" - Liczba iteracji: {iterations}\n\n")
 
         self.save_results(all_results)
-        self.append_output("Benchmark KEM zakończony i zapisany.\n")
 
     def save_results(self, results):
         base_dir = "results/kem"
@@ -132,17 +142,15 @@ class KemWindow:
             plot_total_time_comparison()
         ]
 
-        titles = ["Operation Times", "Key Sizes", "Total Time Comparison"]
+        titles = ["Operation Times Kyber", "Operation Times Bike", "Key Sizes", "Total Time Comparison"]
 
         for fig, title in zip(figs, titles):
-            # Ustawiamy rozmiar figury matplotlib na mniejszy, np. (8, 5)
             fig.set_size_inches(8, 5)
-            fig.tight_layout(pad=2.0)  # dopasuj marginesy
+            fig.tight_layout(pad=2.0)
 
-            # Nowe okno
             plot_window = tk.Toplevel(self.window)
             plot_window.title(title)
-            plot_window.geometry("900x600")  # trochę większe okno niż figura
+            plot_window.geometry("900x600")
 
             frame = tk.Frame(plot_window, padx=20, pady=20)
             frame.pack(fill=tk.BOTH, expand=True)
@@ -151,6 +159,9 @@ class KemWindow:
             canvas.draw()
             w = canvas.get_tk_widget()
             w.pack(padx=10, pady=10)
+
+            plot_window.grab_set()
+            plot_window.wait_window(plot_window)
 
     def show_results_table(self):
         base_dir = "results/kem"
@@ -169,9 +180,7 @@ class KemWindow:
         frame = tk.Frame(table_window, padx=10, pady=10)
         frame.pack(fill=tk.BOTH, expand=True)
 
-        columns = ['variant', 'keygen_time', 'encap_time', 'decap_time', 'public_key_size', 'ciphertext_size',
-                   'secret_key_size']
-
+        columns = ['variant', 'keygen_time', 'encap_time', 'decap_time', 'public_key_size', 'ciphertext_size', 'secret_key_size']
         tree = ttk.Treeview(frame, columns=columns, show='headings')
 
         for col in columns:
@@ -191,89 +200,182 @@ class KemWindow:
 
         tree.pack(fill=tk.BOTH, expand=True)
 
+RESULTS_DIR = "results/sig"
+RESULTS_FILE = os.path.join(RESULTS_DIR, "signature_results.json")
+
 
 class SigWindow:
     def __init__(self, master):
+        self.ALGORITHMS = [
+            "Dilithium2",
+            "Dilithium3",
+            "Dilithium5",
+            "Falcon-512",
+            "Falcon-1024",
+        ]
         self.window = tk.Toplevel(master)
         self.window.title("Signature Benchmark & Signing")
-        self.window.geometry("700x600")
-
-        tk.Label(self.window, text="Wybierz algorytm:").pack()
-        self.alg_var = tk.StringVar(value=ALGORITHMS[0])
-        ttk.Combobox(self.window, values=ALGORITHMS, textvariable=self.alg_var).pack()
+        self.window.geometry("700x700")
 
         tk.Label(self.window, text="Wpisz tekst do podpisania:").pack(pady=5)
         self.text_entry = tk.Text(self.window, height=5, width=60)
         self.text_entry.pack()
 
-        tk.Button(self.window, text="Wybierz plik PDF", command=self.select_file).pack(pady=5)
-        self.selected_file = None
-        self.file_label = tk.Label(self.window, text="Brak wybranego pliku")
-        self.file_label.pack()
-
-        tk.Label(self.window, text="Liczba iteracji do benchmarku:").pack()
+        tk.Label(self.window, text="Liczba iteracji do benchmarku:").pack(pady=5)
         self.iter_entry = tk.Entry(self.window)
         self.iter_entry.insert(0, "10")
         self.iter_entry.pack()
 
+        tk.Label(self.window, text="Wybierz algorytmy:").pack(pady=5)
+        self.check_vars = []
+        frame = tk.Frame(self.window)
+        frame.pack(pady=5)
+        for alg in self.ALGORITHMS:
+            var = tk.IntVar(value=1)  # domyślnie zaznaczone
+            cb = tk.Checkbutton(frame, text=alg, variable=var)
+            cb.pack(side=tk.LEFT, padx=5)
+            self.check_vars.append((alg, var))
+
         tk.Button(self.window, text="Uruchom benchmark podpisu", command=self.run_signature_benchmark).pack(pady=10)
-        tk.Button(self.window, text="Podpisz i zweryfikuj (tekst lub plik)", command=self.sign_and_verify).pack(pady=10)
+        tk.Button(self.window, text="Pokaż wykresy z wyników", command=self.show_charts_from_file).pack(pady=5)
+        tk.Button(self.window, text="Pokaż tabelę wyników", command=self.show_results_table).pack(pady=5)
 
         self.output = tk.Text(self.window, height=15, width=80)
-        self.output.pack()
+        self.output.pack(pady=5)
 
-    def select_file(self):
-        filepath = filedialog.askopenfilename(filetypes=[("PDF files", "*.pdf")])
-        if filepath:
-            self.selected_file = filepath
-            self.file_label.config(text=f"Wybrano: {os.path.basename(filepath)}")
-        else:
-            self.file_label.config(text="Brak wybranego pliku")
+    def append_output(self, text):
+        self.output.insert(tk.END, text)
+        self.output.see(tk.END)
 
     def run_signature_benchmark(self):
-        iterations = int(self.iter_entry.get())
-        self.output.insert(tk.END, "Start benchmarku podpisu...\n")
-        self.window.update()
-        results = run_complete_benchmark(PDF_FILE, ALGORITHMS, iterations)
-        self.save_signature_results(results)
-        self.output.insert(tk.END, "Benchmark podpisu zakończony i zapisany.\n")
+        self.output.delete("1.0", tk.END)
 
-    def save_signature_results(self, results):
-        base_dir = "results/sig"
-        Path(base_dir).mkdir(parents=True, exist_ok=True)
-        df = pd.DataFrame(results)
-        csv_path = os.path.join(base_dir, "signature_results.csv")
-        df.to_csv(csv_path, index=False)
+        selected_algorithms = [alg for alg, var in self.check_vars if var.get() == 1]
 
-    def sign_and_verify(self):
-        text = self.text_entry.get("1.0", tk.END).strip()
-        file_to_sign = self.selected_file
-
-        if not text and not file_to_sign:
-            messagebox.showwarning("Brak danych", "Proszę wpisać tekst lub wybrać plik PDF do podpisania.")
+        if not selected_algorithms:
+            self.append_output("Proszę wybrać przynajmniej jeden algorytm!\n")
             return
 
-        algorithm = self.alg_var.get()
-        signer = PDFSigner(algorithm)
-
-        self.output.insert(tk.END, f"Generowanie kluczy dla {algorithm}...\n")
-        keys = signer.generate_keys()
+        message_text = self.text_entry.get("1.0", "end").strip()
+        message_bytes = message_text.encode()
 
         try:
-            if file_to_sign:
-                self.output.insert(tk.END, f"Podpisywanie pliku {os.path.basename(file_to_sign)}...\n")
-                sign_result = signer.sign_pdf(file_to_sign)
-            else:
-                # Jeśli chcemy podpisać tekst, możemy to zrobić przez zapisanie do pliku tymczasowego i podpisanie lub bezpośrednio, zależy jak implementacja signer'a.
-                # Tu uprościmy i użyjemy metody sign_pdf na pliku PDF (wymaga pliku), więc jeśli jest tekst, trzeba by napisać metodę podpisującą tekst.
-                self.output.insert(tk.END, "Podpisywanie tekstu nie jest wspierane w implementacji signer.\n")
-                return
+            iterations = int(self.iter_entry.get())
+        except ValueError:
+            iterations = 10
 
-            self.output.insert(tk.END, "Podpisanie zakończone.\nWeryfikacja podpisu...\n")
-            verify_result = signer.verify_pdf(file_to_sign if file_to_sign else PDF_FILE, sign_result['signature'], keys['public_key'])
-            self.output.insert(tk.END, f"Weryfikacja zakończona. Czas: {verify_result['verify_time_ms']:.2f} ms\n")
+        all_results = []
+        for alg_name in selected_algorithms:
+            benchmark = SignatureBenchmark(alg_name, message=message_bytes)
+            results = benchmark.run_benchmark(iterations=iterations)
+            all_results.extend(results)
+
+            for res in results:
+                self.append_output(f"Algorytm: {res['algorithm']}\n")
+                self.append_output(f" - Czas generowania klucza: {res['keygen_time_ms']:.2f} ms\n")
+                self.append_output(f" - Średni czas podpisu: {res['avg_sign_time_ms']:.2f} ms\n")
+                self.append_output(f" - Średni czas weryfikacji: {res['avg_verify_time_ms']:.2f} ms\n")
+                self.append_output(f" - Rozmiar klucza publicznego: {res['public_key_size']} bajtów\n")
+                self.append_output(f" - Rozmiar klucza prywatnego: {res['private_key_size']} bajtów\n")
+                self.append_output(f" - Rozmiar podpisu: {res['signature_size']} bajtów\n")
+                self.append_output(f" - Rozmiar wiadomości: {res['message_size']} bajtów\n\n")
+
+        os.makedirs("results/sig", exist_ok=True)
+        with open("results/sig/signature_results.json", "w") as f:
+            json.dump({
+                "message_size": len(message_bytes),
+                "iterations": iterations,
+                "results": all_results
+            }, f, indent=2)
+
+        self.append_output("Wyniki zapisano do results/sig/signature_results.json\n")
+
+    def show_charts_from_file(self):
+        try:
+            with open("results/sig/signature_results.json", "r") as f:
+                data = json.load(f)
         except Exception as e:
-            messagebox.showerror("Błąd podczas podpisywania/weryfikacji", str(e))
+            self.append_output(f"Błąd podczas wczytywania wyników: {e}\n")
+            return
+
+        selected_algs = [alg for alg, var in self.check_vars if var.get()]
+        if not selected_algs:
+            self.append_output("Nie wybrano żadnego algorytmu do wyświetlenia wykresów.\n")
+            return
+
+        filtered_results = [r for r in data["results"] if r["algorithm"] in selected_algs]
+
+        figs = [
+            plot_keygen_times(filtered_results, data["message_size"]),
+            plot_sign_times(filtered_results, data["message_size"]),
+            plot_verify_times(filtered_results, data["message_size"]),
+            plot_total_times(filtered_results, data["message_size"]),
+            plot_key_sizes_signature(filtered_results, data["message_size"])
+        ]
+
+        titles = [
+            "Czasy generowania kluczy",
+            "Czasy podpisywania",
+            "Czasy weryfikacji",
+            "Czasy całkowite",
+            "Rozmiary kluczy i podpisów"
+        ]
+
+        for fig, title in zip(figs, titles):
+            plot_window = tk.Toplevel(self.window)
+            plot_window.title(title)
+            plot_window.geometry("900x600")
+
+            frame = tk.Frame(plot_window, padx=20, pady=20)
+            frame.pack(fill=tk.BOTH, expand=True)
+
+            canvas = FigureCanvasTkAgg(fig, master=frame)
+            canvas.draw()
+            w = canvas.get_tk_widget()
+            w.pack(padx=10, pady=10)
+
+            plot_window.grab_set()
+            plot_window.wait_window(plot_window)
+
+    def show_results_table(self):
+        try:
+            with open("results/sig/signature_results.json", "r") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            messagebox.showerror("Błąd", "Plik wyników nie istnieje!")
+            return
+
+        results = data["results"]
+
+        # Tworzenie nowego okna
+        table_window = tk.Toplevel(self.window)
+        table_window.title("Tabela wyników benchmarku podpisu")
+        table_window.geometry("900x400")
+
+        frame = tk.Frame(table_window, padx=10, pady=10)
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        columns = ['algorithm', 'keygen_time_ms', 'avg_sign_time_ms', 'avg_verify_time_ms',
+                   'public_key_size', 'private_key_size', 'signature_size', 'message_size']
+
+        tree = ttk.Treeview(frame, columns=columns, show='headings')
+        for col in columns:
+            tree.heading(col, text=col.replace('_', ' ').capitalize())
+            tree.column(col, width=120, anchor='center')
+
+        for result in results:
+            tree.insert('', tk.END, values=(
+                result['algorithm'],
+                round(result['keygen_time_ms'], 2),
+                round(result['avg_sign_time_ms'], 2),
+                round(result['avg_verify_time_ms'], 2),
+                result['public_key_size'],
+                result['private_key_size'],
+                result['signature_size'],
+                result['message_size']
+            ))
+
+        tree.pack(fill=tk.BOTH, expand=True)
 
 
 def main():
