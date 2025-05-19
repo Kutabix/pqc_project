@@ -2,10 +2,9 @@ import time
 import numpy as np
 from oqs import KeyEncapsulation
 
-
-class KyberBenchmark:
-    def __init__(self, variant="512"):
-        self.variant = f"Kyber{variant}"
+class BikeBenchmark:
+    def __init__(self, variant="L1"):
+        self.variant = f"BIKE-{variant}"
 
     def run_benchmark(self, iterations=100):
         kem = KeyEncapsulation(self.variant)
@@ -27,7 +26,7 @@ class KyberBenchmark:
 
             metrics['secret_key_sizes'].append(len(secret_key))
 
-            # Encapsulation
+            # Encapsulation (podajemy public_key!)
             start = time.perf_counter()
             ciphertext, shared_secret = kem.encap_secret(public_key)
             metrics['encap_times'].append(time.perf_counter() - start)

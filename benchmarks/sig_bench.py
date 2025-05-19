@@ -15,14 +15,14 @@ def run_complete_benchmark(pdf_path, algorithms, iterations):
         for i in range(iterations):
             result = signer.sign_pdf(pdf_path)
             sign_times.append(result['sign_time_ms'])
-            print(f"Signing #{i + 1}: {result['sign_time_ms']:.2f} ms")
+            # print(f"Signing #{i + 1}: {result['sign_time_ms']:.2f} ms")
 
             verify_result = signer.verify_pdf(
                 pdf_path,
                 result['signature'],
                 key_data['public_key']
             )
-            print(f"Verification: {verify_result['verify_time_ms']:.2f} ms")
+            # print(f"Verification: {verify_result['verify_time_ms']:.2f} ms")
 
             results.append({
                 'algorithm': algo,

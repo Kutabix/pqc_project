@@ -1,0 +1,80 @@
+[
+  {
+    "variant": "Kyber512",
+    "time_avg": {
+      "keygen": 0.1487610992626287,
+      "encap": 0.07227550013340078,
+      "decap": 0.053379699602373876
+    },
+    "size_avg": {
+      "secret_key": 1632.0,
+      "public_key": 800.0,
+      "ciphertext": 768.0
+    }
+  },
+  {
+    "variant": "Kyber768",
+    "time_avg": {
+      "keygen": 0.06430250105040614,
+      "encap": 0.05565730025409721,
+      "decap": 0.07092449995980132
+    },
+    "size_avg": {
+      "secret_key": 2400.0,
+      "public_key": 1184.0,
+      "ciphertext": 1088.0
+    }
+  },
+  {
+    "variant": "Kyber1024",
+    "time_avg": {
+      "keygen": 0.07492160038964357,
+      "encap": 0.09026699990499765,
+      "decap": 0.08359690036741085
+    },
+    "size_avg": {
+      "secret_key": 3168.0,
+      "public_key": 1568.0,
+      "ciphertext": 1568.0
+    }
+  },
+  {
+    "variant": "BIKE-L1",
+    "time_avg": {
+      "keygen": 0.25075740049942397,
+      "encap": 0.08189340042008553,
+      "decap": 1.4498870994430035
+    },
+    "size_avg": {
+      "secret_key": 5223.0,
+      "public_key": 1541.0,
+      "ciphertext": 1573.0
+    }
+  },
+  {
+    "variant": "BIKE-L3",
+    "time_avg": {
+      "keygen": 0.685662400428555,
+      "encap": 0.18804819992510602,
+      "decap": 4.9197265987459105
+    },
+    "size_avg": {
+      "secret_key": 10105.0,
+      "public_key": 3083.0,
+      "ciphertext": 3115.0
+    }
+  },
+  {
+    "variant": "BIKE-L5",
+    "time_avg": {
+      "keygen": 1.590528201268171,
+      "encap": 0.43454659935378004,
+      "decap": 10.066458800065448
+    },
+    "size_avg": {
+      "secret_key": 16494.0,
+      "public_key": 5122.0,
+      "ciphertext": 5154.0
+    }
+  }
+]
