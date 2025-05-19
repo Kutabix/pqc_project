@@ -5,7 +5,7 @@ from tkinter import ttk, filedialog, messagebox
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from algorithms.kem.kyber import KyberBenchmark
 from algorithms.kem.bike import BikeBenchmark
-from algorithms.signature.pdfSigner import SignatureBenchmark
+from algorithms.signature.signature import SignatureBenchmark
 from visualization import plot_key_sizes, \
     plot_total_time_comparison, plot_operation_times_bike, plot_operation_times_kyber, plot_key_sizes_signature, \
     plot_keygen_times, plot_sign_times, plot_verify_times, plot_total_times
