@@ -1,25 +1,14 @@
-import hashlib
-
-import oqs
-from oqs import Signature
-import time
-import json
-import os
-from pathlib import Path
-
-
-
 import oqs
 import time
 import random
 import string
 
 
-class SignatureBenchmark:
-    def __init__(self, algorithm_name, message=None):
-        self.algorithm_name = algorithm_name
+class FalconBenchmark:
+    def __init__(self, variant="Falcon-512", message_length=1024, message=None):
+        self.algorithm_name = variant
         if message is None:
-            self.message = self.generate_random_message(1024)
+            self.message = self.generate_random_message(message_length)
         else:
             if isinstance(message, str):
                 message = message.encode()
@@ -33,7 +22,7 @@ class SignatureBenchmark:
         print(self.message)
         with oqs.Signature(self.algorithm_name) as signer:
             start_time = time.time()
-            public_key = signer.generate_keypair()  # public_key to to, co zwraca generate_keypair()
+            public_key = signer.generate_keypair()
             keygen_time = (time.time() - start_time) * 1000  # ms
 
             private_key = signer.export_secret_key()
@@ -65,13 +54,3 @@ class SignatureBenchmark:
                 'message_size': len(self.message)
             })
         return results
-
-
-class DilithiumBenchmark(SignatureBenchmark):
-    def __init__(self, variant="Dilithium2", message_length=1024):
-        super().__init__(variant, message_length)
-
-
-class FalconBenchmark(SignatureBenchmark):
-    def __init__(self, variant="Falcon-512", message_length=1024):
-        super().__init__(variant, message_length)

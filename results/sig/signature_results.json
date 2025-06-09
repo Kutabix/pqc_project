@@ -1,56 +1,56 @@
 {
-  "message_size": 9,
+  "message_size": 17,
   "iterations": 10,
   "results": [
     {
       "algorithm": "Dilithium2",
-      "keygen_time_ms": 0.9200572967529297,
-      "avg_sign_time_ms": 0.42603015899658203,
-      "avg_verify_time_ms": 0.07600784301757812,
+      "keygen_time_ms": 0.1933574676513672,
+      "avg_sign_time_ms": 0.3321409225463867,
+      "avg_verify_time_ms": 0.10602474212646484,
       "public_key_size": 1312,
       "private_key_size": 2528,
       "signature_size": 2420,
-      "message_size": 9
+      "message_size": 17
     },
     {
       "algorithm": "Dilithium3",
-      "keygen_time_ms": 0.23293495178222656,
-      "avg_sign_time_ms": 0.3576517105102539,
-      "avg_verify_time_ms": 0.11086463928222656,
+      "keygen_time_ms": 0.20503997802734375,
+      "avg_sign_time_ms": 0.382232666015625,
+      "avg_verify_time_ms": 0.12021064758300781,
       "public_key_size": 1952,
       "private_key_size": 4000,
       "signature_size": 3293,
-      "message_size": 9
+      "message_size": 17
     },
     {
       "algorithm": "Dilithium5",
-      "keygen_time_ms": 0.5028247833251953,
-      "avg_sign_time_ms": 0.6514549255371094,
-      "avg_verify_time_ms": 0.17862319946289062,
+      "keygen_time_ms": 0.4565715789794922,
+      "avg_sign_time_ms": 0.5879402160644531,
+      "avg_verify_time_ms": 0.1924276351928711,
       "public_key_size": 2592,
       "private_key_size": 4864,
       "signature_size": 4595,
-      "message_size": 9
+      "message_size": 17
     },
     {
       "algorithm": "Falcon-512",
-      "keygen_time_ms": 9.353160858154297,
-      "avg_sign_time_ms": 3.821086883544922,
-      "avg_verify_time_ms": 0.04630088806152344,
+      "keygen_time_ms": 14.453887939453125,
+      "avg_sign_time_ms": 3.494548797607422,
+      "avg_verify_time_ms": 0.05145072937011719,
       "public_key_size": 897,
       "private_key_size": 1281,
-      "signature_size": 654,
-      "message_size": 9
+      "signature_size": 652,
+      "message_size": 17
     },
     {
       "algorithm": "Falcon-1024",
-      "keygen_time_ms": 27.844667434692383,
-      "avg_sign_time_ms": 6.588888168334961,
-      "avg_verify_time_ms": 0.0978708267211914,
+      "keygen_time_ms": 31.66031837463379,
+      "avg_sign_time_ms": 8.969974517822266,
+      "avg_verify_time_ms": 0.08111000061035156,
       "public_key_size": 1793,
       "private_key_size": 2305,
-      "signature_size": 1269,
-      "message_size": 9
+      "signature_size": 1273,
+      "message_size": 17
     }
   ]
 }

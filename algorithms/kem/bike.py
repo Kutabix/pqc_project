@@ -18,7 +18,6 @@ class BikeBenchmark:
         }
 
         for _ in range(iterations):
-            # Key generation
             start = time.perf_counter()
             public_key = kem.generate_keypair()
             secret_key = kem.export_secret_key()
@@ -26,17 +25,14 @@ class BikeBenchmark:
 
             metrics['secret_key_sizes'].append(len(secret_key))
 
-            # Encapsulation (podajemy public_key!)
             start = time.perf_counter()
             ciphertext, shared_secret = kem.encap_secret(public_key)
             metrics['encap_times'].append(time.perf_counter() - start)
 
-            # Decapsulation
             start = time.perf_counter()
             _ = kem.decap_secret(ciphertext)
             metrics['decap_times'].append(time.perf_counter() - start)
 
-            # Store sizes
             metrics['public_key_sizes'].append(len(public_key))
             metrics['ciphertext_sizes'].append(len(ciphertext))
 
